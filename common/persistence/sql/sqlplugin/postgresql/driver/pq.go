@@ -11,6 +11,8 @@ import (
 
 type PQDriver struct{}
 
+var _ Driver = (*PQDriver)(nil)
+
 const pqDriverName = "postgres"
 
 func (p *PQDriver) CreateConnection(dsn string) (*sqlx.DB, error) {

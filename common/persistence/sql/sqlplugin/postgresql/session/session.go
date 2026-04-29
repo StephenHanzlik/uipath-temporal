@@ -210,7 +210,7 @@ func buildDSNAttr(cfg *config.SQL) (url.Values, error) {
 // Subsequent calls succeed only when presented with an identical
 // Kerberos configuration — pgx stores the provider in a package
 // global, so two SQL stores with divergent Kerberos settings cannot
-// both be honoured within one process.
+// both be honored within one process.
 func registerGSSProvider(cfg *auth.Kerberos) error {
 	var registerErr error
 	gssProviderOnce.Do(func() {

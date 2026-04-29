@@ -13,6 +13,8 @@ import (
 
 type PGXDriver struct{}
 
+var _ Driver = (*PGXDriver)(nil)
+
 const pgxDriverName = "pgx"
 
 func (p *PGXDriver) CreateConnection(dsn string) (*sqlx.DB, error) {

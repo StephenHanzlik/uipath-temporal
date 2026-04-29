@@ -7,6 +7,7 @@ import (
 	"os/user"
 	"strings"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	krb5client "github.com/jcmturner/gokrb5/v8/client"
 	krb5config "github.com/jcmturner/gokrb5/v8/config"
 	"github.com/jcmturner/gokrb5/v8/credentials"
@@ -26,6 +27,8 @@ type kerberosGSS struct {
 	cfg       *auth.Kerberos
 	spnegoCli *spnego.SPNEGO
 }
+
+var _ pgconn.GSS = (*kerberosGSS)(nil)
 
 // kerberosGSSFactory returns a closure that constructs a new
 // kerberosGSS instance. It is registered with pgx via

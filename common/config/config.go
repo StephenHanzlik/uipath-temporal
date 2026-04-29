@@ -448,7 +448,7 @@ type (
 		// TLS is the configuration for TLS connections
 		TLS *auth.TLS `yaml:"tls"`
 		// Kerberos is the configuration for GSSAPI/Kerberos
-		// authentication. Currently only honoured by the PostgreSQL
+		// authentication. Currently only honored by the PostgreSQL
 		// plugin when using the pgx driver (postgres12_pgx).
 		Kerberos *auth.Kerberos `yaml:"kerberos"`
 	}
