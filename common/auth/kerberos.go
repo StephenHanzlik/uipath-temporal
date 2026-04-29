@@ -26,7 +26,7 @@ type (
 		// CredentialCacheFile is a path to a Kerberos credential
 		// cache (ccache). When KeytabFile is empty, this is used to
 		// locate existing credentials (e.g. populated by kinit).
-		// If empty, the value of $KRB5CCNAME is honoured and falls
+		// If empty, the value of $KRB5CCNAME is honored and falls
 		// back to the OS default (/tmp/krb5cc_<uid>).
 		CredentialCacheFile string `yaml:"credentialCacheFile"`
 
