@@ -2,3 +2,5 @@
 # mount and are unique per fixture run. They contain principal keys
 # and should never be committed.
 keytabs/
+ccache/
+*.ccache

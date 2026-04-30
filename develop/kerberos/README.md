@@ -13,8 +13,12 @@ brings up two containers:
   start it creates the `EXAMPLE.LOCAL` realm, registers the
   principals `postgres/localhost@EXAMPLE.LOCAL` and
   `temporal@EXAMPLE.LOCAL`, and writes their keytabs into the host
-  directory `develop/kerberos/keytabs/`. It binds host port 88 (TCP +
-  UDP).
+  directory `develop/kerberos/keytabs/`. **On every start** it
+  refreshes a temporal credential cache at
+  `develop/kerberos/keytabs/temporal.ccache` by running
+  `kinit -k -t temporal.keytab temporal@EXAMPLE.LOCAL` against
+  itself, so a long-running fixture container doesn't serve expired
+  tickets. It binds host port 88 (TCP + UDP).
 - **`temporal-dev-krb5-postgres`** — the official `postgres:13.5`
   image (built `--with-gssapi`) with the postgres keytab and a
   `pg_hba.conf` that requires `gss` for all TCP connections. It
@@ -51,10 +55,19 @@ the default layout:
 | Env var                   | Default                                                              |
 | ------------------------- | -------------------------------------------------------------------- |
 | `TEMPORAL_TEST_KEYTAB`    | `develop/kerberos/keytabs/temporal.keytab` (relative to the test)    |
+| `TEMPORAL_TEST_CCACHE`    | `develop/kerberos/keytabs/temporal.ccache` (relative to the test)    |
 | `KRB5_CONFIG`             | `develop/kerberos/krb5.conf` (relative to the test)                  |
 | `TEMPORAL_TEST_PG_ADDR`   | `127.0.0.1:5433`                                                     |
 | `TEMPORAL_TEST_KRB_REALM` | `EXAMPLE.LOCAL`                                                      |
 | `TEMPORAL_TEST_KRB_USER`  | `temporal`                                                           |
+
+Two tests run by default:
+
+- `TestKerberosE2E_KeytabAuth` — exercises the keytab credential path
+  (typical production-server use case).
+- `TestKerberosE2E_CCacheAuth` — exercises the credential cache path
+  (typical CI/automation use case where `kinit` runs outside the
+  Temporal process).
 
 If the keytab or krb5.conf is missing, the test skips with a clear
 message instead of failing — so it's safe to run in environments
@@ -98,8 +111,3 @@ The `-v` removes the bind volume content reference; the
   enctypes, or constrained delegation. The unit tests cover the
   config wiring for these (`disableFAST`); a full AD-equivalent
   fixture would need Samba 4 or a real AD lab.
-- Credential cache (ccache) authentication. The fixture uses keytab
-  auth because it's the production-server case; ccache works
-  identically from the test code's perspective if you `kinit` first
-  and point the test at the resulting cache file via
-  `kerberos.credentialCacheFile`.

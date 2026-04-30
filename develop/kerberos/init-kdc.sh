@@ -35,5 +35,24 @@ else
     echo "KDC database already exists, skipping initialization."
 fi
 
+# Refresh the temporal credential cache on every container start so a
+# long-running fixture doesn't serve expired tickets. kinit needs the
+# KDC reachable, so we briefly run krb5kdc in the background, kinit,
+# stop it, then exec the real foreground kdc.
+TEMPORAL_CCACHE="${SHARED_DIR}/temporal.ccache"
+echo "Starting krb5kdc temporarily (foreground -n) to populate ccache..."
+# -n keeps krb5kdc in the foreground; without it the process daemonizes
+# and $! captures the parent PID that exits immediately after fork.
+krb5kdc -n &
+KDC_PID=$!
+# Give the KDC a moment to bind its sockets before kinit hits it.
+sleep 1
+echo "Refreshing temporal ccache at ${TEMPORAL_CCACHE}..."
+KRB5CCNAME="FILE:${TEMPORAL_CCACHE}" kinit -k -t "${TEMPORAL_KEYTAB}" "temporal@${REALM}"
+chmod 644 "${TEMPORAL_CCACHE}"
+echo "Stopping background krb5kdc (PID ${KDC_PID})..."
+kill "${KDC_PID}"
+wait "${KDC_PID}" 2>/dev/null || true
+
 echo "Starting krb5kdc in foreground..."
 exec krb5kdc -n
