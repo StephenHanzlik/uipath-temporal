@@ -1,0 +1,4 @@
+# Keytabs are generated at runtime by init-kdc.sh into a host bind
+# mount and are unique per fixture run. They contain principal keys
+# and should never be committed.
+keytabs/
