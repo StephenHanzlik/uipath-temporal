@@ -45,6 +45,7 @@ func envOrDefault(name, fallback string) string {
 	return fallback
 }
 
+// parallelize:ignore - mutates package-level gssProviderOnce
 func TestKerberosE2E_KeytabAuth(t *testing.T) {
 	resetGSSProviderForTesting(t)
 	// Defaults assume the docker-compose.kerberos.yml fixture is up
@@ -97,6 +98,7 @@ func TestKerberosE2E_KeytabAuth(t *testing.T) {
 	require.Equal(t, user, who, "current_user should match the kerberos principal (with realm stripped via include_realm=0)")
 }
 
+// parallelize:ignore - mutates package-level gssProviderOnce
 func TestKerberosE2E_CCacheAuth(t *testing.T) {
 	resetGSSProviderForTesting(t)
 	// Same fixture as the keytab test; this exercises the alternate

@@ -1,0 +1,4 @@
+# Force LF line endings on the shell script regardless of host
+# git autocrlf setting. Windows checkouts otherwise break the script
+# inside the Linux container.
+*.sh text eol=lf

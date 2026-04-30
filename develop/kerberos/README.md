@@ -24,6 +24,36 @@ brings up two containers:
   `pg_hba.conf` that requires `gss` for all TCP connections. It
   binds host port 5433.
 
+## Platform support
+
+The fixture is intended to work on every platform Temporal supports
+for development:
+
+- **Linux x86_64 / arm64** — works with the standard Docker daemon.
+  Privileged port 88 binding requires the daemon to run as root
+  (the default). If you use **rootless Docker**, see "Rootless
+  Docker" below.
+- **macOS (Intel / Apple Silicon)** — works with Docker Desktop. The
+  postgres:13.5 and alpine:3.19 base images both ship multi-arch
+  manifests including `linux/arm64`, so no emulation runs on M-series
+  Macs.
+- **Windows via WSL2** — clone and run inside the WSL2 distro (per
+  the project's `CONTRIBUTING.md`). The `.gitattributes` in this
+  directory pins `*.sh` to LF line endings so git checkouts on a
+  Windows host don't CRLF-corrupt `init-kdc.sh`.
+
+### Rootless Docker (Linux)
+
+Rootless Docker can't bind privileged host ports (< 1024) by
+default. Two ways to run the fixture:
+
+1. Lower the threshold for your user once with
+   `sudo sysctl net.ipv4.ip_unprivileged_port_start=80` — survives
+   until reboot, persistent via `/etc/sysctl.d/`.
+2. Edit `docker-compose.kerberos.yml` to map the KDC's port 88 to a
+   high host port (e.g. `"8088:88"`) and update
+   `develop/kerberos/krb5.conf` to point at `127.0.0.1:8088`.
+
 ## Bring it up
 
 ```bash
