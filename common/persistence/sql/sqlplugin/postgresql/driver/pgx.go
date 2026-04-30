@@ -13,6 +13,8 @@ import (
 
 type PGXDriver struct{}
 
+var _ Driver = (*PGXDriver)(nil)
+
 const pgxDriverName = "pgx"
 
 func (p *PGXDriver) CreateConnection(dsn string) (*sqlx.DB, error) {
@@ -48,6 +50,8 @@ func (p *PGXDriver) IsDupDatabaseError(err error) bool {
 	pqErr, ok := err.(*pgconn.PgError)
 	return ok && pqErr.Code == dupDatabaseCode
 }
+
+func (p *PGXDriver) SupportsGSSAPI() bool { return true }
 
 func (p *PGXDriver) IsConnNeedsRefreshError(err error) bool {
 	pqErr, ok := err.(*pgconn.PgError)

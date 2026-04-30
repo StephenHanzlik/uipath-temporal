@@ -11,6 +11,8 @@ import (
 
 type PQDriver struct{}
 
+var _ Driver = (*PQDriver)(nil)
+
 const pqDriverName = "postgres"
 
 func (p *PQDriver) CreateConnection(dsn string) (*sqlx.DB, error) {
@@ -42,6 +44,8 @@ func (p *PQDriver) IsDupDatabaseError(err error) bool {
 	pqErr, ok := err.(*pq.Error)
 	return ok && pqErr.Code == dupDatabaseCode
 }
+
+func (p *PQDriver) SupportsGSSAPI() bool { return false }
 
 func (p *PQDriver) IsConnNeedsRefreshError(err error) bool {
 	pqErr, ok := err.(*pq.Error)

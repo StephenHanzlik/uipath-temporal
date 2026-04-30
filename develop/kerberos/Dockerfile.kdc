@@ -1,0 +1,17 @@
+FROM alpine:3.19
+
+RUN apk add --no-cache krb5 krb5-server bash
+
+ENV REALM=EXAMPLE.LOCAL
+ENV KRB5_CONFIG=/etc/krb5.conf
+ENV KRB5_KDC_PROFILE=/var/lib/krb5kdc/kdc.conf
+ENV SHARED_DIR=/shared
+
+COPY krb5.conf /etc/krb5.conf
+COPY kdc.conf /var/lib/krb5kdc/kdc.conf
+COPY init-kdc.sh /usr/local/bin/init-kdc.sh
+RUN chmod +x /usr/local/bin/init-kdc.sh
+
+EXPOSE 88/tcp 88/udp
+
+ENTRYPOINT ["/usr/local/bin/init-kdc.sh"]
