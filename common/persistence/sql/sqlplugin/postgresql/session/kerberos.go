@@ -54,8 +54,13 @@ func (g *kerberosGSS) GetInitToken(host, service string) ([]byte, error) {
 }
 
 // GetInitTokenFromSPN builds the initial SPNEGO token for the given
-// service principal name.
+// service principal name. The SPN must be in "service/host" form;
+// any "@REALM" suffix is stripped because gokrb5's SPNEGO client
+// derives the realm from krb5.conf rather than from the SPN string.
 func (g *kerberosGSS) GetInitTokenFromSPN(spn string) ([]byte, error) {
+	if i := strings.LastIndex(spn, "@"); i >= 0 {
+		spn = spn[:i]
+	}
 	cl, err := newKrb5Client(g.cfg)
 	if err != nil {
 		return nil, err

@@ -1,0 +1,70 @@
+# Kerberos E2E test fixture.
+#
+# Brings up an MIT KDC and a Kerberos-authenticated Postgres so the
+# Kerberos code paths in postgresql/session can be exercised end-to-end.
+#
+# Usage:
+#   cd develop/docker-compose
+#   docker compose -f docker-compose.kerberos.yml up --build -d
+#
+#   # from the repo root, with the KDC running on host:88 and the
+#   # postgres on host:5433:
+#   go test -tags kerberos -count=1 \
+#       -timeout 60s \
+#       ./common/persistence/sql/sqlplugin/postgresql/session/...
+#
+#   docker compose -f docker-compose.kerberos.yml down -v
+#
+# Notes:
+# - The KDC binds to host port 88. On Linux this requires the
+#   container to start as a user with CAP_NET_BIND_SERVICE; Docker's
+#   default capability set covers this. On macOS / Docker Desktop
+#   binding privileged ports works out of the box.
+# - The keytabs end up on a host-mounted volume at
+#   ${PWD}/../kerberos/keytabs/. The Go test reads them from that
+#   path via the TEMPORAL_KEYTAB / KRB5_CONFIG env vars (see README).
+
+services:
+  kdc:
+    build:
+      context: ../kerberos
+      dockerfile: Dockerfile.kdc
+    container_name: temporal-dev-krb5-kdc
+    environment:
+      REALM: EXAMPLE.LOCAL
+    ports:
+      - "88:88/tcp"
+      - "88:88/udp"
+    volumes:
+      - ../kerberos/keytabs:/shared
+    networks:
+      - temporal-krb-network
+
+  postgres-krb:
+    image: postgres:13.5
+    container_name: temporal-dev-krb5-postgres
+    depends_on:
+      kdc:
+        condition: service_started
+    environment:
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: temporal
+      POSTGRES_DB: temporal
+    ports:
+      # Bind to 5433 on the host to avoid clashing with the standard
+      # password-auth Postgres in docker-compose.yml.
+      - "5433:5432"
+    volumes:
+      - ../kerberos/keytabs:/etc/postgres-keytab:ro
+      - ../kerberos/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+    command: >
+      postgres
+      -c hba_file=/etc/postgresql/pg_hba.conf
+      -c krb_server_keyfile=/etc/postgres-keytab/postgres.keytab
+      -c log_connections=on
+    networks:
+      - temporal-krb-network
+
+networks:
+  temporal-krb-network:
+    name: temporal-krb-network

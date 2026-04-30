@@ -43,6 +43,11 @@ type (
 		// (the "krbspn" DSN parameter). When set it takes precedence
 		// over ServiceName + host-derived SPN. Use for cases such
 		// as SQL Server-style SPNs or cross-realm trusts.
+		//
+		// Format: "service/host". The realm is taken from
+		// ConfigFile's default_realm; an optional "@REALM" suffix
+		// is accepted and stripped for compatibility with libpq
+		// convention.
 		SPN string `yaml:"spn"`
 
 		// DisableFAST turns off FAST (Flexible Authentication Secure
